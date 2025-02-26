@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "794891095241",
+    "project_id": "websocket-f966f",
+    "storage_bucket": "websocket-f966f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:794891095241:android:c016bcf08e958c98265118",
+        "android_client_info": {
+          "package_name": "com.example.flutter_websocket"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCoM3pImDz3av7aFInPWTZ1Mik9fGr8plQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
