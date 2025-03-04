@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_websocket/core/utils/app_router.dart';
 import 'package:flutter_websocket/service/acoount_dialogs.dart';
 import 'package:flutter_websocket/service/firebase_auth_service.dart';
 import 'package:flutter_websocket/service/user_service.dart';
@@ -26,19 +27,25 @@ class _AccountPageViewState extends State<AccountPageView> {
   bool isLoading = true;
 
   Future<void> _loadUserInfo() async {
-    setState(() {
-      isLoading = true;
-    });
+    if (mounted) {
+      setState(() {
+        isLoading = true;
+      });
+    }
     Map<String, dynamic>? userInfo = await _userService.getUserInfo();
 
-    if (userInfo != null) {
-      setState(() {
-        fullName = userInfo['fullName'] ?? '';
-        phoneNumber = userInfo['phoneNumber'] ?? '';
-        address = userInfo['address'] ?? '';
-        profileImageUrl = userInfo['profileImageUrl'];
-        isLoading = false;
-      });
+    if (mounted) {
+      if (userInfo != null) {
+        setState(
+          () {
+            fullName = userInfo['fullName'] ?? '';
+            phoneNumber = userInfo['phoneNumber'] ?? '';
+            address = userInfo['address'] ?? '';
+            profileImageUrl = userInfo['profileImageUrl'];
+            isLoading = false;
+          },
+        );
+      }
     } else {
       setState(() {
         isLoading = false;
@@ -51,34 +58,44 @@ class _AccountPageViewState extends State<AccountPageView> {
       final XFile? pickedFile =
           await _picker.pickImage(source: ImageSource.gallery);
       if (pickedFile == null) return;
-      setState(() {
-        isLoading = true;
-      });
+      if (mounted) {
+        setState(() {
+          isLoading = true;
+        });
+      }
 
       File imageFile = File(pickedFile.path);
       String? downloadUrl = await _userService.uploadProfileImage(imageFile);
 
-      if (downloadUrl != null) {
-        setState(() {
-          profileImageUrl = downloadUrl;
+      if (!mounted) return;
+      setState(
+        () {
+          if (downloadUrl != null) {
+            profileImageUrl = downloadUrl;
+          }
           isLoading = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Cập nhật ảnh đại diện thành công'),
-          ),
-        );
-      } else {
-        setState(() {
-          isLoading = false;
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Cập nhật ảnh đại diện thất bại'),
-            ),
-          );
-        });
-      }
+          if (downloadUrl != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Cập nhật ảnh đại diện thành công'),
+              ),
+            );
+          } else {
+            if (mounted) {
+              setState(() {
+                isLoading = false;
+              });
+            }
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Cập nhật ảnh đại diện thất bại'),
+              ),
+            );
+          }
+        },
+      );
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         isLoading = false;
       });
@@ -93,13 +110,20 @@ class _AccountPageViewState extends State<AccountPageView> {
   Future<void> _handleLogOut() async {
     try {
       await _authServvice.signOut();
-      Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Lỗi khi đăng xuất: ${e}'),
-        ),
+      if (!mounted) return;
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        AppRouter.loginRouter,
+        (route) => false,
       );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi khi đăng xuất: ${e}'),
+          ),
+        );
+      }
     }
   }
 
@@ -253,7 +277,8 @@ class _AccountPageViewState extends State<AccountPageView> {
                               color: Colors.red,
                             ),
                           ),
-                          onTap: () => AccountDiglogs.showLogoutConfirmation(context, _handleLogOut),
+                          onTap: () => AccountDiglogs.showLogoutConfirmation(
+                              context, _handleLogOut),
                         )
                       ],
                     ),
